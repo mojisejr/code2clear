@@ -2,17 +2,54 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
-    previewFeatures = ["jsonProtocol"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "sqlite"
-    url      = env("DATABASE_URL")
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
-model Example {
-    id        String   @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+model User {
+  id        String    @id @default(uuid())
+  wallet    String    @unique
+  email     String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  creditId  String
+  credit    Credit    @relation(fields: [creditId], references: [id])
+  history   History[]
+}
+
+model Contract {
+  id        Int       @id @default(autoincrement())
+  address   String
+  type      String
+  standard  String
+  name      String
+  summarize String
+  functions Json?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  History   History[]
+}
+
+model History {
+  id         Int      @id @default(autoincrement())
+  wallet     String
+  contractId Int
+  contract   Contract @relation(fields: [contractId], references: [id])
+  User       User?    @relation(fields: [wallet], references: [wallet])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Credit {
+  id        String   @id @default(uuid())
+  wallet    String   @unique
+  credit    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  User      User[]
 }
